@@ -10,14 +10,6 @@ pygame.joystick.init()
 
 # 若只连接了一个手柄，此处带入的参数一般都是0
 joystick = pygame.joystick.Joystick(0)
-
-
-
-
-
-
-
-
 # 手柄对象初始化a
 joystick.init()
 
@@ -39,8 +31,6 @@ def process(param):
         client_socket.sendall(message_size+param)
 
 while not done:
-
-
     for event_ in pygame.event.get():
         # 退出事件
         if event_.type == pygame.QUIT:
@@ -72,15 +62,15 @@ while not done:
         elif event_.type == pygame.JOYAXISMOTION:
             if (event_.axis == 0):
                 if (event_.value > 0.3):
-                    process("turnRight")
+                    process("turnRight:0.5")
+                elif (event_.value > 0.8):
+                    process("turnRight:1")
                 elif (event_.value < -0.3 ):
-                    process("turnLeft")
-
-
+                    process("turnLeft:0.5")
+                elif (event_.value > 0.8):
+                    process("turnLeft:1")
 
                 else:
                     process("turnForward")
 
 pygame.quit()
-
-
