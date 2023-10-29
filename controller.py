@@ -2,6 +2,7 @@
 import pygame
 import platform
 from bleak import BleakClient, BleakScanner
+import asyncio
 
 # 模块初始化
 pygame.init()
@@ -14,31 +15,33 @@ joystick.init()
 
 done = False
 last_cmd = "0"
-device
+device=None
 
 mac_addr = (
     "34:85:18:70:34:46"
     if platform.system() != "Darwin"
     else "A1BBC8EA-21D2-84A0-62EE-84C3601D36A6"
 )
-BleakScanner.find_device_by_address(mac_addr)
-
-
-async def send():
+async def initBlueTooth():
+    global mac_addr
     global device
-    global last_cmd
-    async with BleakClient(device) as client:
-        while True:
-            if (last_cmd != "0"):
-                await client.write_gatt_char("6e400002-b5a3-f393-e0a9-e50e24dcca9e", bytes(last_cmd, 'UTF-8'))
+    device = await BleakScanner.find_device_by_address(mac_addr)
 
+
+async def send(cmd):
+    global device
+    async with BleakClient(device) as client:
+         if (cmd != "0"):
+              await client.write_gatt_char("6e400002-b5a3-f393-e0a9-e50e24dcca9e", bytes(last_cmd, 'UTF-8'))
 
 def process(param):
     global last_cmd
     if param != last_cmd:
         print(param)
         last_cmd = param
+        asyncio.run(send(param))
 
+asyncio.run(initBlueTooth())
 
 while not done:
     for event_ in pygame.event.get():
@@ -73,14 +76,14 @@ while not done:
             if (event_.axis == 0):
                 if (event_.value > 0.3):
                     process("turnRight:0.5")
-                elif (event_.value > 0.8):
-                    process("turnRight:1")
+                elif (event_.value >0.8):
+                    process("turnLeft:1")
                 elif (event_.value < -0.3):
                     process("turnLeft:0.5")
                 elif (event_.value > 0.8):
                     process("turnLeft:1")
-
                 else:
                     process("turnForward")
+
 
 pygame.quit()
