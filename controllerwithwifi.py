@@ -1,7 +1,8 @@
 # coding:utf-8
 import pygame
-import platform
-from bleak import BleakClient, BleakScanner
+import socket
+import struct
+import _thread
 
 # 模块初始化
 pygame.init()
@@ -13,32 +14,21 @@ joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
 done = False
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host_ip = '192.168.4.1' # 指定接收端IP地址
+port = 9999 # 指定接收端端口号
+client_socket.connect((host_ip, port))
+#_thread.start_new_thread(client.showCam, ())
 last_cmd = "0"
-device
-
-mac_addr = (
-    "34:85:18:70:34:46"
-    if platform.system() != "Darwin"
-    else "A1BBC8EA-21D2-84A0-62EE-84C3601D36A6"
-)
-BleakScanner.find_device_by_address(mac_addr)
-
-
-async def send():
-    global device
-    global last_cmd
-    async with BleakClient(device) as client:
-        while True:
-            if (last_cmd != "0"):
-                await client.write_gatt_char("6e400002-b5a3-f393-e0a9-e50e24dcca9e", bytes(last_cmd, 'UTF-8'))
-
 
 def process(param):
     global last_cmd
     if param != last_cmd:
         print(param)
         last_cmd = param
-
+        param=param.encode("utf-8")
+        message_size = struct.pack("i", len(param))
+        client_socket.sendall(message_size+param)
 
 while not done:
     for event_ in pygame.event.get():
@@ -75,7 +65,7 @@ while not done:
                     process("turnRight:0.5")
                 elif (event_.value > 0.8):
                     process("turnRight:1")
-                elif (event_.value < -0.3):
+                elif (event_.value < -0.3 ):
                     process("turnLeft:0.5")
                 elif (event_.value > 0.8):
                     process("turnLeft:1")

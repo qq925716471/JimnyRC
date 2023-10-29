@@ -1,12 +1,19 @@
 import asyncio
-from bleak import BleakClient,BleakScanner
+import platform
 
-address = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
-MODEL_NBR_UUID = "2A24"
+from bleak import BleakClient, BleakScanner
 
-async def main():
-    devices = await BleakScanner.discover()
-    for d in devices:  # d为类，其属性有：d.name为设备名称，d.address为设备地址
-        print(d)
 
-asyncio.run(main())
+async def print_services(mac_addr: str):
+    device = await BleakScanner.find_device_by_address(mac_addr)
+    async with BleakClient(device) as client:
+        await client.write_gatt_char("6e400002-b5a3-f393-e0a9-e50e24dcca9e", bytes("hello turnRight", 'UTF-8'))
+
+
+mac_addr = (
+    "34:85:18:70:34:46"
+    if platform.system() != "Darwin"
+    else "A1BBC8EA-21D2-84A0-62EE-84C3601D36A6"
+)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(print_services(mac_addr))
